@@ -24,6 +24,8 @@ module "user_claude" {
   name         = "Claude"
   role_name    = "Admin role"
   usrgrp_names = ["claude-readonly"]
+
+  depends_on = [module.usergroup_claude_readonly]
 }
 
 module "user_ctv" {
@@ -34,6 +36,8 @@ module "user_ctv" {
   username     = "ctv_user"
   role_name    = "Admin role"
   usrgrp_names = ["CTV team"]
+
+  depends_on = [module.usergroup_ctv_team]
 }
 
 module "user_dodo4svk4" {
