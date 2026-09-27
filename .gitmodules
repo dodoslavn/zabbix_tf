@@ -1,0 +1,3 @@
+[submodule "vendor/zabbix_templates"]
+	path = vendor/zabbix_templates
+	url = git@github.com:dodoslavn/zabbix_templates.git

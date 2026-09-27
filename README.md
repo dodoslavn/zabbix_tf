@@ -12,8 +12,10 @@ monitoring objects. So this repo is split in two:
   custom `modules/zabbix_user` and `modules/zabbix_usergroup` modules, which
   call the Zabbix JSON-RPC API directly via `null_resource` + `local-exec`,
   using `curl` and `jq`.
-- **Everything else** (hosts, host groups, templates, items, triggers,
-  graphs, proxies...) is managed with the standard
+- **Templates** (`templates.tf`) are imported from XML exports rather than
+  hand-written as resources — see below.
+- **Everything else** (hosts, host groups, items, triggers, graphs,
+  proxies...) is managed with the standard
   [`tpretz/zabbix`](https://registry.terraform.io/providers/tpretz/zabbix/latest)
   provider, configured in `main.tf`. Add new resources for these as normal
   Terraform resources — no custom scripting needed.
@@ -39,6 +41,30 @@ deleted via the API. They're documented as reference-only data in `users.tf`.
 
 Built-in groups (`Zabbix administrators`, `Guests`) are documented as
 reference-only data in `groups.tf`, not managed.
+
+### Templates module behavior
+
+Template XML lives in a separate repo,
+[dodoslavn/zabbix_templates](https://github.com/dodoslavn/zabbix_templates),
+vendored in here as a git submodule at `vendor/zabbix_templates`. `templates.tf`
+discovers every `templates/*/template.xml` in that submodule and imports each
+one via the Zabbix `configuration.import` API — the standard provider has no
+resource that accepts raw exported XML, and hand-translating every
+template/item/trigger into HCL would just fight the format the templates are
+actually maintained in.
+
+- On `apply`, each template is (re-)imported whenever its XML file's content
+  changes (tracked via `filemd5`). `createMissing`/`updateExisting` are on for
+  templates, items, triggers, graphs, discovery rules, and value maps;
+  `deleteMissing` is off everywhere, so removing something from the XML
+  doesn't delete it from Zabbix — only the exported repo growing new/changed
+  content ever changes anything here.
+- There's deliberately no `destroy` behavior: forgetting one of these
+  resources from Terraform state must not delete a live template (and
+  everything referencing it - hosts, history, triggers). Removing a template
+  from Zabbix is a manual, deliberate action.
+- Clone with `git submodule update --init` (or `git clone --recurse-submodules`)
+  before running `terraform plan`/`apply` locally.
 
 ### Prerequisites
 
