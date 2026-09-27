@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+API_TOKEN="${API_TOKEN:-${TF_VAR_zabbix_api_token:-}}"
+if [ -z "${API_TOKEN}" ]; then
+  echo "no API token found in \$API_TOKEN or \$TF_VAR_zabbix_api_token" >&2
+  exit 1
+fi
+
 api() {
   local method="$1" params="$2"
   curl -sf -X POST "${ZABBIX_URL%/}/api_jsonrpc.php" \

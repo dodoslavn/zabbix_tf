@@ -46,4 +46,8 @@ reference-only data in `groups.tf`, not managed.
 - A Zabbix API token with Super Admin permissions, supplied via the
   `zabbix_api_token` variable (e.g. `TF_VAR_zabbix_api_token` env var, never
   committed — see `.gitignore` for `*.tfvars`). This same token authenticates
-  both the custom scripts and the `tpretz/zabbix` provider.
+  both the custom scripts and the `tpretz/zabbix` provider. Destroy-time
+  provisioners can't reference Terraform variables, so `terraform destroy`
+  reads the token straight from that same `TF_VAR_zabbix_api_token`
+  environment variable (or `API_TOKEN`) — make sure it's exported in the
+  shell you run `destroy` from.

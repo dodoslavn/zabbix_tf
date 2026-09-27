@@ -23,13 +23,15 @@ resource "null_resource" "user" {
     }
   }
 
+  # Destroy-time provisioners may only reference `self`, so API_TOKEN can't be
+  # passed here as var.api_token - the script falls back to reading it from
+  # the ambient environment (API_TOKEN or TF_VAR_zabbix_api_token) instead.
   provisioner "local-exec" {
     when        = destroy
     interpreter = ["/bin/bash", "-c"]
     command     = "${path.module}/scripts/delete.sh"
     environment = {
       ZABBIX_URL = self.triggers.zabbix_url
-      API_TOKEN  = var.api_token
       USERNAME   = self.triggers.username
     }
   }
